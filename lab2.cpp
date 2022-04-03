@@ -48,6 +48,7 @@ class file
         }
         else
         {
+            ind%=(1LL<<local_depth);
             long long mirror= (ind ^ (1LL<<local_depth));
             vector<long long> mirrors;
             local_depth=directory[ind]->return_depth(true);
