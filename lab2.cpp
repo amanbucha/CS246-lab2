@@ -5,13 +5,11 @@ class bucket
 {
     int depth;
     vector<long long> b;
-
+    
     public:
-    bucket(int dd){ depth=dd;}
-
-    vector<long long> give(){ return b; }
-    int d(){ return depth;}
-    void deepen() { depth++; }
+    bucket(int depth){ this->depth=depth;}
+    vector<long long> return_vector(){ return b; }
+    int return_depth(bool increase=false){ if(increase) depth++; return depth;}
     void erase(long long val) { b.erase(find(b.begin(), b.end(), val)); }
     void add(long long val) { b.push_back(val); }
     void erase_all() { b.clear(); }
@@ -41,8 +39,8 @@ class file
 
     void doctor(int ind)
     {
-        vector<long long> v= directory[ind]->give();
-        int local_depth=directory[ind]->d();
+        vector<long long> v= directory[ind]->return_vector();
+        int local_depth=directory[ind]->return_depth();
         if(local_depth==global_depth)
         {
             double_directory();
@@ -52,29 +50,23 @@ class file
         {
             long long mirror= (ind ^ (1LL<<local_depth));
             vector<long long> mirrors;
-            directory[ind]->deepen(); local_depth++;
+            local_depth=directory[ind]->return_depth(true);
             directory[mirror]=bucket_generate(local_depth);
             for(int i=0; i<(1LL<<global_depth); i++)
-                if(i%(1LL<<local_depth)==mirror)
+                if(i%(1LL<<local_depth)==mirror%(1LL<<local_depth))
                     directory[i]=directory[mirror];
-            vector<long long> segregate=v;
             directory[ind]->erase_all();
-            for(auto x : segregate)
-            {
-                if(x%(1LL<<local_depth)==ind)
-                    directory[ind]->add(x);
-                else
-                    directory[mirror]->add(x);
-            }
-            if(directory[ind]->give().size()>bucket_capacity) doctor(ind);
-            else if (directory[mirror]->give().size()>bucket_capacity) doctor(mirror);
+            for(auto x : v)
+                directory[x%(1LL<<global_depth)]->add(x);
+            if(directory[ind]->return_vector().size()>bucket_capacity) doctor(ind);
+            else if (directory[mirror]->return_vector().size()>bucket_capacity) doctor(mirror);
         }
     }
 
     bool search(long long val)
     {
         long long index=(val%(1LL<<global_depth));
-        vector<long long> check= directory[index]->give();
+        vector<long long> check= directory[index]->return_vector();
         if(find(check.begin(), check.end(), val)==check.end()) return false;
         else return true;
     }
@@ -91,8 +83,7 @@ class file
     {
         long long index=(val%(1LL<<global_depth));
         directory[index]->add(val);
-        vector<long long> check= directory[index]->give();
-        if(check.size()<=bucket_capacity)
+        if(directory[index]->return_vector().size()<=bucket_capacity)
             return;
         doctor(index);
     }
@@ -100,13 +91,12 @@ class file
     void display()
     {
         cout<<global_depth<<endl<<bucket_list.size()<<endl;
-        for(auto bb:bucket_list ) cout<<bb->give().size()<<" "<<bb->d()<<endl;
+        for(auto bb:bucket_list ) cout<<bb->return_vector().size()<<" "<<bb->return_depth()<<endl;
     }
 
     file(int gd, int bc)
     {
-        bucket_capacity=bc; 
-        global_depth=gd;
+        global_depth=gd; bucket_capacity=bc; 
         for(long long i=0; i<(1LL<<global_depth); i++)
             directory.push_back(bucket_generate(global_depth));
     }
@@ -131,14 +121,12 @@ int main()
         else if(input==3)
         {
             int x; cin>>x;
-            bool ok=f.search(x);
-            //if(!ok) cout<<"Not "; cout<<"Found\n";
+            bool ok=f.search(x); //if(!ok) cout<<"Not "; cout<<"Found\n";
         }
         else if(input==4)
         {
             int x; cin>>x;
-            bool ok=f.erase(x);
-            //if(!ok) cout<<"Not "; cout<<"Deleted\n";
+            bool ok=f.erase(x); //if(!ok) cout<<"Not "; cout<<"Deleted\n";
         }
         else if(input==5)
             f.display();
